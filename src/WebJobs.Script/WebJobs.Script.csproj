@@ -56,7 +56,6 @@
     <PackageReference Include="Microsoft.Azure.WebJobs.Extensions" Version="4.0.4-10859" />
     <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.Http" Version="3.1.1-10859" />
     <PackageReference Include="Microsoft.Azure.WebJobs.Script.Abstractions" Version="1.0.2-preview" />
-    <PackageReference Include="Microsoft.Build" Version="15.8.166" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="3.3.1" />
     <PackageReference Include="Microsoft.DotNet.PlatformAbstractions" Version="2.1.0" />
     <PackageReference Include="Microsoft.Extensions.DiagnosticAdapter" Version="1.1.0" />
@@ -80,6 +79,7 @@
     <PackageReference Include="System.Reactive.Linq" Version="3.1.1" />
     <PackageReference Include="System.Reactive.PlatformServices" Version="3.1.1" />
     <PackageReference Include="System.Reflection.Emit" Version="4.7.0" />
+    <PackageReference Include="System.Runtime.Loader" Version="4.3.0" />
     <PackageReference Include="WindowsAzure.Storage" Version="9.3.1" />
   </ItemGroup>
 
