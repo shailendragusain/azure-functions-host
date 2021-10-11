@@ -101,9 +101,9 @@ namespace Microsoft.Azure.WebJobs.Script.BindingExtensions
 
             var project = await GetOrCreateProjectAsync(extensionsProjectPath);
 
-            return project.Descendants()
+            return project.Descendants()?
                 .Where(i => i.Name == PackageReferenceElementName &&
-                            i.Attribute(PackageReferenceIncludeElementName).Value != MetadataGeneratorPackageId)
+                            i.Attribute(PackageReferenceIncludeElementName)?.Value != MetadataGeneratorPackageId)
                 .Select(i => new ExtensionPackageReference
                 {
                     Id = i.Attribute(PackageReferenceIncludeElementName)?.Value,
@@ -280,7 +280,7 @@ namespace Microsoft.Azure.WebJobs.Script.BindingExtensions
             XDocument doc = new XDocument();
 
             doc.CreateProject();
-            doc.AddTargetFramework("netstandard2.0");
+            doc.AddTargetFramework(TargetFrameworkNetStandard2_0);
             doc.AddPackageReference(MetadataGeneratorPackageId, MetadataGeneratorPackageVersion);
 
             return doc;
