@@ -141,10 +141,11 @@ namespace Microsoft.Azure.WebJobs.Script
         public const string PackageReferenceVersionElementName = "Version";
         public const string PackageReferenceIncludeElementName = "Include";
         public const string TargetFrameworkElementName = "TargetFramework";
-        public const string TargetFrameworkNetStandard2_0 = "netstandard2.0";
+        public const string TargetFrameworkNetStandard2 = "netstandard2.0";
         public const string PropertyGroupElementName = "PropertyGroup";
         public const string ItemGroupElementName = "ItemGroup";
         public const string WarningsAsErrorsElementName = "WarningsAsErrors";
+
         public const int HostTimeoutSeconds = 30;
         public const int HostPollingIntervalMilliseconds = 25;
         public const int MaximumSecretBackupCount = 10;

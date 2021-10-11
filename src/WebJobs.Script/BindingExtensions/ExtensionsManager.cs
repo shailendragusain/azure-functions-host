@@ -280,7 +280,7 @@ namespace Microsoft.Azure.WebJobs.Script.BindingExtensions
             XDocument doc = new XDocument();
 
             doc.CreateProject();
-            doc.AddTargetFramework(TargetFrameworkNetStandard2_0);
+            doc.AddTargetFramework(TargetFrameworkNetStandard2);
             doc.AddPackageReference(MetadataGeneratorPackageId, MetadataGeneratorPackageVersion);
 
             return doc;
