@@ -2,15 +2,13 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Xml;
+using System.Xml.Linq;
 using Microsoft.Azure.WebJobs.Script.Config;
 using Microsoft.Azure.WebJobs.Script.Description.DotNet;
 using Microsoft.Azure.WebJobs.Script.Diagnostics.Extensions;
@@ -19,7 +17,6 @@ using Microsoft.Azure.WebJobs.Script.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using static Microsoft.Azure.WebJobs.Script.ScriptConstants;
-using static Microsoft.DotNet.PlatformAbstractions.RuntimeEnvironment;
 
 namespace Microsoft.Azure.WebJobs.Script.BindingExtensions
 {
@@ -66,14 +63,14 @@ namespace Microsoft.Azure.WebJobs.Script.BindingExtensions
             await SaveAndProcessProjectAsync(project);
         }
 
-        private async Task SaveAndProcessProjectAsync(XmlDocument project)
+        private async Task SaveAndProcessProjectAsync(XDocument project)
         {
             string baseFolder = Path.GetTempPath();
 
             var tempFolder = Path.Combine(baseFolder, "Functions", "Extensions", Guid.NewGuid().ToString());
             Directory.CreateDirectory(tempFolder);
 
-            File.WriteAllText(Path.Combine(tempFolder, ExtensionsProjectFileName), project.InnerXml);
+            File.WriteAllText(Path.Combine(tempFolder, ExtensionsProjectFileName), project.ToString());
 
             await ProcessExtensionsProject(tempFolder);
         }
@@ -103,15 +100,14 @@ namespace Microsoft.Azure.WebJobs.Script.BindingExtensions
             }
 
             var project = await GetOrCreateProjectAsync(extensionsProjectPath);
-            var projectElements = project.SelectNodes("//*").OfType<XmlElement>();
 
-            return projectElements
-                .Where(i => PackageReferenceElementName.Equals(i.Name, StringComparison.Ordinal)
-                    && !MetadataGeneratorPackageId.Equals(i.Attributes[PackageReferenceIncludeElementName].Value, StringComparison.Ordinal))
+            return project.Descendants()
+                .Where(i => i.Name == PackageReferenceElementName &&
+                            i.Attribute(PackageReferenceIncludeElementName).Value != MetadataGeneratorPackageId)
                 .Select(i => new ExtensionPackageReference
                 {
-                    Id = i.Attributes[PackageReferenceIncludeElementName]?.Value,
-                    Version = i.Attributes[PackageReferenceVersionElementName]?.Value
+                    Id = i.Attribute(PackageReferenceIncludeElementName)?.Value,
+                    Version = i.Attribute(PackageReferenceVersionElementName)?.Value
                 })
                 .ToList();
         }
@@ -265,24 +261,23 @@ namespace Microsoft.Azure.WebJobs.Script.BindingExtensions
             File.Copy(Path.Combine(tempFolder, ExtensionsProjectFileName), DefaultExtensionsProjectPath, true);
         }
 
-        private Task<XmlDocument> GetOrCreateProjectAsync(string path)
+        private Task<XDocument> GetOrCreateProjectAsync(string path)
         {
             return Task.Run(() =>
             {
-                XmlDocument root = null;
+                XDocument root = null;
                 if (File.Exists(path))
                 {
-                    root = new XmlDocument();
-                    root.Load(path);
+                    root = XDocument.Load(path);
                 }
 
                 return root ?? CreateDefaultProject(path);
             });
         }
 
-        private XmlDocument CreateDefaultProject(string path)
+        private XDocument CreateDefaultProject(string path)
         {
-            XmlDocument doc = new XmlDocument();
+            XDocument doc = new XDocument();
 
             doc.CreateProject();
             doc.AddTargetFramework("netstandard2.0");

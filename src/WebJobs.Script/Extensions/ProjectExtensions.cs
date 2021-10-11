@@ -1,166 +1,109 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-using System;
 using System.Linq;
-using System.Xml;
+using System.Xml.Linq;
 using static Microsoft.Azure.WebJobs.Script.ScriptConstants;
 
 namespace Microsoft.Azure.WebJobs.Script.BindingExtensions
 {
     internal static class ProjectExtensions
     {
-        public static void CreateProject(this XmlDocument document)
+        public static void CreateProject(this XDocument document)
         {
-            XmlElement project = document.CreateElement(string.Empty, ProjectElementName, string.Empty);
-            XmlElement propertyGroup = document.CreatePropertyGroup();
-            XmlElement itemGroup = document.CreateItemGroup();
+            XElement project =
+                new XElement(ProjectElementName,
+                    new XAttribute(ExtensionsProjectSdkAttributeName, ExtensionsProjectSdkPackageId),
+                    new XElement(PropertyGroupElementName,
+                        new XElement(WarningsAsErrorsElementName)),
+                    new XElement(ItemGroupElementName));
 
-            propertyGroup.AppendChild(document.CreateWarningAsErrors());
-            project.SetAttribute(ExtensionsProjectSdkAttributeName, ExtensionsProjectSdkPackageId);
-            project.AppendChild(propertyGroup);
-            project.AppendChild(itemGroup);
-            document.AppendChild(project);
+            document.AddFirst(project);
         }
 
-        public static void AddPackageReference(this XmlDocument project, string packageId, string version)
+        public static void AddPackageReference(this XDocument document, string packageId, string version)
         {
-            var projectElements = project?.SelectNodes("//*").OfType<XmlElement>();
-
-            XmlElement existingPackageReference = projectElements
-                .FirstOrDefault(item => item?.Name == PackageReferenceElementName && item?.Attributes[PackageReferenceIncludeElementName]?.Value == packageId);
+            XElement existingPackageReference = document.Descendants()?.FirstOrDefault(
+                                                        item =>
+                                                        item?.Name == PackageReferenceElementName &&
+                                                        item?.Attribute(PackageReferenceIncludeElementName).Value == packageId);
 
             if (existingPackageReference != null)
             {
                 // If the package with the same version is already present, move on...
-                if (existingPackageReference.Attributes[PackageReferenceVersionElementName]?.Value == version)
+                if (existingPackageReference.Attribute(PackageReferenceVersionElementName)?.Value == version)
                 {
                     return;
                 }
 
-                existingPackageReference.ParentNode?.RemoveChild(existingPackageReference);
+                existingPackageReference.Remove();
             }
 
-            XmlElement group = GetUniformItemGroupOrNew(project, ItemGroupElementName);
-
-            group.AppendChild(project.CreatePackageReference(packageId, version));
+            document.CreatePackageReference(packageId, version);
         }
 
-        public static void RemovePackageReference(this XmlDocument project, string packageId)
+        public static void RemovePackageReference(this XDocument document, string packageId)
         {
-            var projectElements = project.SelectNodes("//*").OfType<XmlElement>();
-
-            XmlElement existingPackageReference = projectElements
-                .FirstOrDefault(item => item?.Name == PackageReferenceElementName && item?.Attributes[PackageReferenceIncludeElementName]?.Value == packageId);
-
+            XElement existingPackageReference = document.Descendants()?.FirstOrDefault(
+                                                        item =>
+                                                        item?.Name == PackageReferenceElementName &&
+                                                        item?.Attribute(PackageReferenceIncludeElementName).Value == packageId);
             if (existingPackageReference != null)
             {
-                existingPackageReference.ParentNode?.RemoveChild(existingPackageReference);
+                existingPackageReference.Remove();
             }
         }
 
-        public static void AddTargetFramework(this XmlDocument project, string innerText)
+        public static void AddTargetFramework(this XDocument document, string innerText)
         {
-            var projectElements = project?.SelectNodes("//*").OfType<XmlElement>();
-
-            XmlElement existingPackageReference = projectElements
-                .FirstOrDefault(item => item?.Name == TargetFrameworkElementName && item.InnerText == innerText);
+            XElement existingPackageReference = document.Descendants()?.FirstOrDefault(
+                                                        item =>
+                                                        item?.Name == TargetFrameworkElementName &&
+                                                        item?.Value == innerText);
 
             if (existingPackageReference != null)
             {
                 return;
             }
 
-            XmlElement group = GetUniformItemGroupOrNew(project, PropertyGroupElementName);
-
-            group.AppendChild(project.CreateTargetFramework(innerText));
+            document.CreateTargetFramework(innerText);
         }
 
-        public static void RemoveTargetFramework(this XmlDocument project, string innerText)
+        public static void RemoveTargetFramework(this XDocument document, string innerText)
         {
-            var projectElements = project.SelectNodes("//*").OfType<XmlElement>();
-
-            XmlElement existingPackageReference = projectElements
-                .FirstOrDefault(item => item?.Name == TargetFrameworkElementName && item.InnerText == innerText);
+            XElement existingPackageReference = document.Descendants()?.FirstOrDefault(
+                                                        item =>
+                                                        item?.Name == TargetFrameworkElementName &&
+                                                        item?.Value == innerText);
 
             if (existingPackageReference != null)
             {
-                existingPackageReference.ParentNode?.RemoveChild(existingPackageReference);
+                existingPackageReference.Remove();
             }
         }
 
-        private static XmlElement GetUniformItemGroupOrNew(this XmlDocument project, string itemName)
+        private static void CreateTargetFramework(this XDocument document, string innerText)
         {
-            var projectElements = project?.SelectNodes("//*").OfType<XmlElement>();
-
-            XmlElement group = projectElements
-                                .Where(i => itemName.Equals(i.Name, StringComparison.Ordinal))
-                                .FirstOrDefault();
-
-            return group ?? project.AddGroup();
-        }
-
-        private static XmlElement CreatePropertyGroup(this XmlDocument doc)
-        {
-            XmlElement itemGroup = doc?.CreateElement(string.Empty, PropertyGroupElementName, string.Empty);
-            return itemGroup;
-        }
-
-        private static XmlElement CreateItemGroup(this XmlDocument doc)
-        {
-            XmlElement itemGroup = doc?.CreateElement(string.Empty, ItemGroupElementName, string.Empty);
-            return itemGroup;
-        }
-
-        private static XmlElement CreateTargetFramework(this XmlDocument doc, string innerText)
-        {
-            XmlElement element = doc?.CreateElement(string.Empty, ScriptConstants.TargetFrameworkElementName, string.Empty);
-            element.InnerText = innerText;
-            return element;
-        }
-
-        private static XmlElement CreatePackageReference(this XmlDocument doc, string id, string version)
-        {
-            XmlElement element = doc?.CreateElement(string.Empty, PackageReferenceElementName, string.Empty);
-            element.SetAttribute(PackageReferenceIncludeElementName, id);
-            element.SetAttribute(PackageReferenceVersionElementName, version);
-            return element;
-        }
-
-        private static XmlElement CreateWarningAsErrors(this XmlDocument doc)
-        {
-            XmlElement element = doc?.CreateElement(string.Empty, WarningsAsErrorsElementName, string.Empty);
-            return element;
-        }
-
-        private static XmlElement AddGroup(this XmlDocument doc)
-        {
-            XmlElement reference = doc?.FirstChild?.ChildNodes?.OfType<XmlElement>().FirstOrDefault();
-            XmlElement propertyGroups = doc?.FirstChild?.ChildNodes?.OfType<XmlElement>()
-                                            .Where(i => PropertyGroupElementName.Equals(i.Name,  StringComparison.Ordinal))
-                                            .FirstOrDefault();
-
-            if (reference == null)
+            if (document.Root.Element(TargetFrameworkElementName) == null)
             {
-                foreach (XmlElement propertyGroup in propertyGroups)
-                {
-                    reference = propertyGroup;
-                    break;
-                }
+                document.Root.Add(new XElement(TargetFrameworkElementName));
             }
 
-            XmlElement newItemGroup = doc.CreateItemGroup();
+            XElement element = new XElement(TargetFrameworkElementName, new XText(innerText));
+            document.Root.Element(PropertyGroupElementName).Add(element);
+        }
 
-            if (reference == null)
+        private static void CreatePackageReference(this XDocument document, string id, string version)
+        {
+            if (document.Root.Element(ItemGroupElementName) == null)
             {
-                doc.AppendChild(newItemGroup);
-            }
-            else
-            {
-                doc.InsertAfter(newItemGroup, reference);
+                document.Root.Add(new XElement(ItemGroupElementName));
             }
 
-            return newItemGroup;
+            XElement element = new XElement(PackageReferenceElementName,
+                                    new XAttribute(PackageReferenceIncludeElementName, id),
+                                    new XAttribute(PackageReferenceVersionElementName, version));
+            document.Root.Element(ItemGroupElementName).Add(element);
         }
     }
 }
