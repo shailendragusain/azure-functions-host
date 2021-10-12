@@ -22,6 +22,13 @@ namespace Microsoft.Azure.WebJobs.Script.BindingExtensions
 {
     public class ExtensionsManager : IExtensionsManager
     {
+        private const string ExtensionsProjectSdkAttributeName = "Sdk";
+        private const string ExtensionsProjectSdkPackageId = "Microsoft.NET.Sdk";
+        private const string ProjectElementName = "Project";
+        private const string TargetFrameworkElementName = "TargetFramework";
+        private const string PropertyGroupElementName = "PropertyGroup";
+        private const string WarningsAsErrorsElementName = "WarningsAsErrors";
+        private const string TargetFrameworkNetStandard2 = "netstandard2.0";
         private const string MetadataGeneratorPackageId = "Microsoft.Azure.WebJobs.Script.ExtensionsMetadataGenerator";
         private const string MetadataGeneratorPackageVersion = "1.1.*";
         private readonly string _scriptRootPath;
@@ -104,8 +111,8 @@ namespace Microsoft.Azure.WebJobs.Script.BindingExtensions
             var project = await GetOrCreateProjectAsync(extensionsProjectPath);
 
             return project.Descendants()?
-                .Where(i => ItemGroupElementName.Equals(i.Parent.Name.LocalName, StringComparison.Ordinal) &&
-                            PackageReferenceElementName.Equals(i.Name.LocalName, StringComparison.Ordinal) &&
+                .Where(i => PackageReferenceElementName.Equals(i.Name.LocalName, StringComparison.Ordinal) &&
+                            ItemGroupElementName.Equals(i.Parent.Name.LocalName, StringComparison.Ordinal) &&
                             !MetadataGeneratorPackageId.Equals(i.Attribute(PackageReferenceIncludeElementName)?.Value, StringComparison.Ordinal))
                 .Select(i => new ExtensionPackageReference
                 {
@@ -280,12 +287,21 @@ namespace Microsoft.Azure.WebJobs.Script.BindingExtensions
 
         private XDocument CreateDefaultProject(string path)
         {
-            XDocument doc = new XDocument();
+            XDocument document = new XDocument();
 
-            doc.CreateProject();
-            doc.AddPackageReference(MetadataGeneratorPackageId, MetadataGeneratorPackageVersion);
+            XElement project =
+                new XElement(ProjectElementName,
+                    new XAttribute(ExtensionsProjectSdkAttributeName, ExtensionsProjectSdkPackageId),
+                    new XElement(PropertyGroupElementName,
+                        new XElement(WarningsAsErrorsElementName),
+                        new XElement(TargetFrameworkElementName, new XText(TargetFrameworkNetStandard2))),
+                    new XElement(ItemGroupElementName,
+                        new XElement(PackageReferenceElementName,
+                            new XAttribute(PackageReferenceIncludeElementName, MetadataGeneratorPackageId),
+                            new XAttribute(PackageReferenceVersionElementName, MetadataGeneratorPackageVersion))));
 
-            return doc;
+            document.AddFirst(project);
+            return document;
         }
     }
 }
