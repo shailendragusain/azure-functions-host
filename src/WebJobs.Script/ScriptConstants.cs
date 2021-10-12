@@ -137,7 +137,6 @@ namespace Microsoft.Azure.WebJobs.Script
         public const string PackageReferenceVersionElementName = "Version";
         public const string PackageReferenceIncludeElementName = "Include";
 
-
         public const int HostTimeoutSeconds = 30;
         public const int HostPollingIntervalMilliseconds = 25;
         public const int MaximumSecretBackupCount = 10;

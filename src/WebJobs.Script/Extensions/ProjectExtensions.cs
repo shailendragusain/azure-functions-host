@@ -9,12 +9,13 @@ namespace Microsoft.Azure.WebJobs.Script.BindingExtensions
 {
     internal static class ProjectExtensions
     {
-        private const string ExtensionsProjectSdkAttributeName = "Sdk";
-        private const string ExtensionsProjectSdkPackageId = "Microsoft.NET.Sdk";
-        private const string ProjectElementName = "Project";
-        private const string TargetFrameworkElementName = "TargetFramework";
-        private const string PropertyGroupElementName = "PropertyGroup";
-        private const string WarningsAsErrorsElementName = "WarningsAsErrors";
+        internal const string ExtensionsProjectSdkAttributeName = "Sdk";
+        internal const string ExtensionsProjectSdkPackageId = "Microsoft.NET.Sdk";
+        internal const string ProjectElementName = "Project";
+        internal const string TargetFrameworkElementName = "TargetFramework";
+        internal const string PropertyGroupElementName = "PropertyGroup";
+        internal const string WarningsAsErrorsElementName = "WarningsAsErrors";
+        internal const string TargetFrameworkNetStandard2 = "netstandard2.0";
 
         public static void CreateProject(this XDocument document)
         {
@@ -22,7 +23,8 @@ namespace Microsoft.Azure.WebJobs.Script.BindingExtensions
                 new XElement(ProjectElementName,
                     new XAttribute(ExtensionsProjectSdkAttributeName, ExtensionsProjectSdkPackageId),
                     new XElement(PropertyGroupElementName,
-                        new XElement(WarningsAsErrorsElementName)),
+                        new XElement(WarningsAsErrorsElementName),
+                        new XElement(TargetFrameworkElementName, new XText(TargetFrameworkNetStandard2))),
                     new XElement(ItemGroupElementName));
 
             document.AddFirst(project);
@@ -61,56 +63,26 @@ namespace Microsoft.Azure.WebJobs.Script.BindingExtensions
             }
         }
 
-        public static void AddTargetFramework(this XDocument document, string innerText)
-        {
-            XElement existingPackageReference = document.Descendants()?.FirstOrDefault(
-                                                        item =>
-                                                        item?.Name == TargetFrameworkElementName &&
-                                                        item?.Value == innerText);
-
-            if (existingPackageReference != null)
-            {
-                return;
-            }
-
-            document.CreateTargetFramework(innerText);
-        }
-
-        public static void RemoveTargetFramework(this XDocument document, string innerText)
-        {
-            XElement existingPackageReference = document.Descendants()?.FirstOrDefault(
-                                                        item =>
-                                                        item?.Name == TargetFrameworkElementName &&
-                                                        item?.Value == innerText);
-
-            if (existingPackageReference != null)
-            {
-                existingPackageReference.Remove();
-            }
-        }
-
-        internal static void CreateTargetFramework(this XDocument document, string innerText)
-        {
-            if (document.Root.Element(PropertyGroupElementName) == null)
-            {
-                document.Root.Add(new XElement(PropertyGroupElementName));
-            }
-
-            XElement element = new XElement(TargetFrameworkElementName, new XText(innerText));
-            document.Root.Element(PropertyGroupElementName).Add(element);
-        }
-
         internal static void CreatePackageReference(this XDocument document, string id, string version)
         {
-            if (document.Root.Element(ItemGroupElementName) == null)
-            {
-                document.Root.Add(new XElement(ItemGroupElementName));
-            }
-
+            XElement group = document.GetUniformItemGroupOrNew(PackageReferenceElementName);
             XElement element = new XElement(PackageReferenceElementName,
                                     new XAttribute(PackageReferenceIncludeElementName, id),
                                     new XAttribute(PackageReferenceVersionElementName, version));
-            document.Root.Element(ItemGroupElementName).Add(element);
+            group.Add(element);
+        }
+
+        internal static XElement GetUniformItemGroupOrNew(this XDocument document, string itemName)
+        {
+            XElement group = document.Descendants(ItemGroupElementName).FirstOrDefault(g => g.Elements().All(i => i.Name.LocalName == itemName));
+
+            if (group == null)
+            {
+                document.Root.Add(new XElement(ItemGroupElementName));
+                group = document.Descendants(ItemGroupElementName).LastOrDefault();
+            }
+
+            return group;
         }
     }
 }

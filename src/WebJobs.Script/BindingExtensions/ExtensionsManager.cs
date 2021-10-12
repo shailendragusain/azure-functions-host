@@ -22,13 +22,12 @@ namespace Microsoft.Azure.WebJobs.Script.BindingExtensions
 {
     public class ExtensionsManager : IExtensionsManager
     {
+        private const string MetadataGeneratorPackageId = "Microsoft.Azure.WebJobs.Script.ExtensionsMetadataGenerator";
+        private const string MetadataGeneratorPackageVersion = "1.1.*";
         private readonly string _scriptRootPath;
         private readonly ILogger _logger;
         private readonly IExtensionBundleManager _extensionBundleManager;
         private string _nugetFallbackPath;
-        private const string TargetFrameworkNetStandard2 = "netstandard2.0";
-        private const string MetadataGeneratorPackageId = "Microsoft.Azure.WebJobs.Script.ExtensionsMetadataGenerator";
-        private const string MetadataGeneratorPackageVersion = "1.1.*";
 
         public ExtensionsManager(IOptions<ScriptJobHostOptions> hostOptions, ILogger<ExtensionsManager> logger, IExtensionBundleManager extensionBundleManager)
         {
@@ -284,7 +283,6 @@ namespace Microsoft.Azure.WebJobs.Script.BindingExtensions
             XDocument doc = new XDocument();
 
             doc.CreateProject();
-            doc.AddTargetFramework(TargetFrameworkNetStandard2);
             doc.AddPackageReference(MetadataGeneratorPackageId, MetadataGeneratorPackageVersion);
 
             return doc;
