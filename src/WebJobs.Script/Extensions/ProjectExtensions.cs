@@ -48,7 +48,7 @@ namespace Microsoft.Azure.WebJobs.Script.BindingExtensions
 
         internal static XElement GetUniformItemGroupOrNew(this XDocument document, string itemName)
         {
-            XElement group = document.Descendants(ItemGroupElementName).FirstOrDefault(g => g.Elements().All(i => i.Name.LocalName == itemName));
+            XElement group = document.Descendants(ItemGroupElementName).LastOrDefault(g => g.Elements().All(i => i.Name.LocalName == itemName));
 
             if (group == null)
             {
