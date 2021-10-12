@@ -202,7 +202,7 @@ namespace Microsoft.Azure.WebJobs.Script.Description
                 XDocument root = XDocument.Load(reader);
 
                 return root.Descendants()?
-                    .Where(i => i.Name == PackageReferenceElementName)
+                    .Where(i => PackageReferenceElementName.Equals(i.Name.LocalName, StringComparison.Ordinal))
                     .Select(i => new LibraryRange
                     {
                         Name = i.Attribute(PackageReferenceIncludeElementName)?.Value,

@@ -9,6 +9,13 @@ namespace Microsoft.Azure.WebJobs.Script.BindingExtensions
 {
     internal static class ProjectExtensions
     {
+        private const string ExtensionsProjectSdkAttributeName = "Sdk";
+        private const string ExtensionsProjectSdkPackageId = "Microsoft.NET.Sdk";
+        private const string ProjectElementName = "Project";
+        private const string TargetFrameworkElementName = "TargetFramework";
+        private const string PropertyGroupElementName = "PropertyGroup";
+        private const string WarningsAsErrorsElementName = "WarningsAsErrors";
+
         public static void CreateProject(this XDocument document)
         {
             XElement project =
@@ -82,18 +89,18 @@ namespace Microsoft.Azure.WebJobs.Script.BindingExtensions
             }
         }
 
-        private static void CreateTargetFramework(this XDocument document, string innerText)
+        internal static void CreateTargetFramework(this XDocument document, string innerText)
         {
-            if (document.Root.Element(TargetFrameworkElementName) == null)
+            if (document.Root.Element(PropertyGroupElementName) == null)
             {
-                document.Root.Add(new XElement(TargetFrameworkElementName));
+                document.Root.Add(new XElement(PropertyGroupElementName));
             }
 
             XElement element = new XElement(TargetFrameworkElementName, new XText(innerText));
             document.Root.Element(PropertyGroupElementName).Add(element);
         }
 
-        private static void CreatePackageReference(this XDocument document, string id, string version)
+        internal static void CreatePackageReference(this XDocument document, string id, string version)
         {
             if (document.Root.Element(ItemGroupElementName) == null)
             {

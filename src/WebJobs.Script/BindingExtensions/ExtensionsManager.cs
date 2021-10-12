@@ -26,6 +26,9 @@ namespace Microsoft.Azure.WebJobs.Script.BindingExtensions
         private readonly ILogger _logger;
         private readonly IExtensionBundleManager _extensionBundleManager;
         private string _nugetFallbackPath;
+        private const string TargetFrameworkNetStandard2 = "netstandard2.0";
+        private const string MetadataGeneratorPackageId = "Microsoft.Azure.WebJobs.Script.ExtensionsMetadataGenerator";
+        private const string MetadataGeneratorPackageVersion = "1.1.*";
 
         public ExtensionsManager(IOptions<ScriptJobHostOptions> hostOptions, ILogger<ExtensionsManager> logger, IExtensionBundleManager extensionBundleManager)
         {
@@ -102,8 +105,9 @@ namespace Microsoft.Azure.WebJobs.Script.BindingExtensions
             var project = await GetOrCreateProjectAsync(extensionsProjectPath);
 
             return project.Descendants()?
-                .Where(i => i.Name == PackageReferenceElementName &&
-                            i.Attribute(PackageReferenceIncludeElementName)?.Value != MetadataGeneratorPackageId)
+                .Where(i => ItemGroupElementName.Equals(i.Parent.Name.LocalName, StringComparison.Ordinal) &&
+                            PackageReferenceElementName.Equals(i.Name.LocalName, StringComparison.Ordinal) &&
+                            !MetadataGeneratorPackageId.Equals(i.Attribute(PackageReferenceIncludeElementName)?.Value, StringComparison.Ordinal))
                 .Select(i => new ExtensionPackageReference
                 {
                     Id = i.Attribute(PackageReferenceIncludeElementName)?.Value,
