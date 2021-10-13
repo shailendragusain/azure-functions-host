@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System;
 using System.Linq;
 using System.Xml.Linq;
 using static Microsoft.Azure.WebJobs.Script.ScriptConstants;
@@ -13,8 +14,8 @@ namespace Microsoft.Azure.WebJobs.Script.BindingExtensions
         {
             XElement existingPackageReference = document.Descendants()?.FirstOrDefault(
                                                         item =>
-                                                        item?.Name == PackageReferenceElementName &&
-                                                        item?.Attribute(PackageReferenceIncludeElementName).Value == packageId);
+                                                        PackageReferenceElementName.Equals(item.Name?.LocalName, StringComparison.Ordinal) &&
+                                                        item.Attribute(PackageReferenceIncludeElementName)?.Value == packageId);
 
             if (existingPackageReference != null)
             {
@@ -38,8 +39,8 @@ namespace Microsoft.Azure.WebJobs.Script.BindingExtensions
         {
             XElement existingPackageReference = document.Descendants()?.FirstOrDefault(
                                                         item =>
-                                                        item?.Name == PackageReferenceElementName &&
-                                                        item?.Attribute(PackageReferenceIncludeElementName).Value == packageId);
+                                                        PackageReferenceElementName.Equals(item.Name?.LocalName, StringComparison.Ordinal) &&
+                                                        item.Attribute(PackageReferenceIncludeElementName)?.Value == packageId);
             if (existingPackageReference != null)
             {
                 existingPackageReference.Remove();
@@ -48,7 +49,9 @@ namespace Microsoft.Azure.WebJobs.Script.BindingExtensions
 
         internal static XElement GetUniformItemGroupOrNew(this XDocument document, string itemName)
         {
-            XElement group = document.Descendants(ItemGroupElementName).LastOrDefault(g => g.Elements().All(i => i.Name.LocalName == itemName));
+            XElement group = document.Descendants(ItemGroupElementName)
+                                        .LastOrDefault(g => g.Elements()
+                                            .All(i => itemName.Equals(i.Name?.LocalName, StringComparison.Ordinal)));
 
             if (group == null)
             {

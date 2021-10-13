@@ -40,6 +40,7 @@ namespace Microsoft.Azure.WebJobs.Script.Tests.Extensions
             // Assert
             Assert.Equal(1, testDocument.Descendants("PackageReference").Count());
             Assert.Equal(version, testDocument.Descendants("PackageReference").FirstOrDefault().Attribute("Version").Value);
+            Assert.Equal("ItemGroup", testDocument.Descendants("PackageReference").FirstOrDefault().Parent.Name);
         }
 
         [Fact]
