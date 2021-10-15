@@ -41,8 +41,9 @@ namespace Microsoft.Azure.WebJobs.Script.Tests
         {
             string depsJsonFileName = "Microsoft.Azure.WebJobs.Script.WebHost.deps.json";
 
+            string webHostBinPath = Path.Join("..", "..", "..", "..", "..", "src", "WebJobs.Script.WebHost", "bin");
             string oldDepsJson = Path.GetFullPath(depsJsonFileName);
-            var newDepsJson = Directory.GetFiles(Path.GetFullPath(@"..\..\..\..\..\src\WebJobs.Script.WebHost\bin\"), depsJsonFileName, SearchOption.AllDirectories).FirstOrDefault();
+            string newDepsJson = Directory.GetFiles(Path.GetFullPath(webHostBinPath), depsJsonFileName, SearchOption.AllDirectories).FirstOrDefault();
 
             Assert.True(File.Exists(oldDepsJson), $"{oldDepsJson} not found.");
             Assert.True(File.Exists(newDepsJson), $"{newDepsJson} not found.");
