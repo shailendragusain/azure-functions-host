@@ -22,7 +22,9 @@
           "Microsoft.Azure.WebJobs.Script.Grpc": "4.0.0-preview.4.0",
           "Microsoft.Azure.WebSites.DataProtection": "2.1.91-alpha",
           "StyleCop.Analyzers": "1.1.0-beta004",
-          "System.Net.NameResolution": "4.3.0"
+          "System.Net.NameResolution": "4.3.0",
+          "System.Runtime.Handles": "4.3.0",
+          "System.Runtime.InteropServices": "4.3.0"
         },
         "runtime": {
           "Microsoft.Azure.WebJobs.Script.WebHost.dll": {}
